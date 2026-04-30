@@ -23,13 +23,13 @@ Aplikacja webowa do prowadzenia i archiwizowania pełnych badań optometrycznych
 ## Wymagania
 
 - Python 3.8+
-- Google Chrome (zalecany)
+- Dowolna przeglądarka internetowa
 
 ## Uruchomienie (Windows)
 
 ### Metoda 1 — podwójne kliknięcie
 
-Uruchom `start.bat`. Skrypt zainstaluje Flask (jeśli brak) i otworzy aplikację w Chrome.
+Uruchom `start.bat`. Skrypt zainstaluje Flask (jeśli brak) i otworzy aplikację w domyślnej przeglądarce.
 
 ### Metoda 2 — terminal
 

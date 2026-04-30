@@ -5,7 +5,7 @@ echo.
 echo  Aplikacja Badania Optometrycznego
 echo  ==================================
 
-REM Wykryj dostępną komendę Pythona
+REM Wykryj dost�pn� komend� Pythona
 set PY=
 python --version >nul 2>&1
 if %errorlevel% == 0 (
@@ -27,6 +27,6 @@ if "%PY%"=="" (
 echo  Wykryto: %PY%
 %PY% -m pip install flask -q 2>nul
 echo  Uruchamianie serwera...
-start "" "chrome" "http://localhost:5000"
+start "" "http://localhost:5000"
 %PY% app.py
 pause
