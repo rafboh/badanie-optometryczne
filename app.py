@@ -215,10 +215,12 @@ def fmt_text(data, exam):
                     out.append(f"  {eye:<10}{far:^18}{near:^18}{notes}")
 
     # ── Sekcja 5 ──────────────────────────────────────────────────────────────
-    SUBJ = ['subj_op_sph','subj_op_cyl','subj_op_axis','subj_ol_sph','subj_ol_cyl']
-    BBAL = ['binocular_balance','mpmva_op','mpmva_ol']
-    FBIN = ['far_bino_method','far_bino_result','phoria_far_h','verg_bo_pos','verg_bi_pos']
-    if has(*SUBJ, *BBAL, *FBIN):
+    SUBJ    = ['subj_op_sph','subj_op_cyl','subj_op_axis','subj_ol_sph','subj_ol_cyl']
+    BBAL    = ['binocular_balance','mpmva_op','mpmva_ol']
+    FBIN    = ['far_bino_method','far_bino_result','phoria_far_h','verg_bo_pos','verg_bi_pos']
+    SUBJ_VA = ['subj_va_op_far','subj_va_ol_far','subj_va_ou_far',
+               'subj_va_op_near','subj_va_ol_near','subj_va_ou_near']
+    if has(*SUBJ, *BBAL, *FBIN, *SUBJ_VA):
         sec('5. Refrakcja podmiotowa (subiektywna) – dal')
         if has(*SUBJ):
             sub('5.1–5.2. Monokularna refrakcja podmiotowa')
@@ -232,6 +234,15 @@ def fmt_text(data, exam):
             fld('Metoda równoważenia', d('binocular_balance'))
             if has('mpmva_op','mpmva_ol'):
                 fld('MPMVA', f"OP: {d('mpmva_op') or '—'} D  OL: {d('mpmva_ol') or '—'} D")
+        if has(*SUBJ_VA):
+            sub('5.5. Ostrość wzroku z korekcją podmiotową')
+            COL = f"  {'Oko':<10}{'Dal z kor. subj.':^20}{'Bliż z kor. subj.':^20}"
+            out.append(COL); out.append('  ' + '─'*50)
+            for eye, pfx in [('OP (OD)','subj_va_op'),('OL (OS)','subj_va_ol'),('OPL (OU)','subj_va_ou')]:
+                far  = d(pfx+'_far')  or '—'
+                near = d(pfx+'_near') or '—'
+                if far != '—' or near != '—':
+                    out.append(f"  {eye:<10}{far:^20}{near:^20}")
         if has(*FBIN):
             sub('5.4. Widzenie obuoczne w korekcji dal')
             if has('far_bino_method','far_bino_result'):

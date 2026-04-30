@@ -4,8 +4,29 @@ title Badanie Optometryczne
 echo.
 echo  Aplikacja Badania Optometrycznego
 echo  ==================================
-python -m pip install flask -q 2>nul
+
+REM Wykryj dostępną komendę Pythona
+set PY=
+python --version >nul 2>&1
+if %errorlevel% == 0 (
+    set PY=python
+) else (
+    py --version >nul 2>&1
+    if %errorlevel% == 0 (
+        set PY=py
+    )
+)
+
+if "%PY%"=="" (
+    echo  BLAD: Python nie zostal znaleziony.
+    echo  Zainstaluj Python ze strony https://www.python.org/
+    pause
+    exit /b 1
+)
+
+echo  Wykryto: %PY%
+%PY% -m pip install flask -q 2>nul
 echo  Uruchamianie serwera...
 start "" "chrome" "http://localhost:5000"
-python app.py
+%PY% app.py
 pause

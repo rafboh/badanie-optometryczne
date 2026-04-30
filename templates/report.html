@@ -387,10 +387,12 @@
                             'subj_ol_sph','subj_ol_cyl','subj_ol_axis',
                             'subj_op_va','subj_ol_va') %}
 {% set s5_3  = has_any(data,'binocular_balance','mpmva_op','mpmva_ol') %}
+{% set s5_5  = has_any(data,'subj_va_op_far','subj_va_ol_far','subj_va_ou_far',
+                            'subj_va_op_near','subj_va_ol_near','subj_va_ou_near') %}
 {% set s5_4  = has_any(data,'far_bino_method','far_bino_result',
                             'phoria_far_h','phoria_far_v',
                             'verg_bo_pos','verg_bi_pos') %}
-{% if s5_12 or s5_3 or s5_4 %}
+{% if s5_12 or s5_3 or s5_5 or s5_4 %}
 <div class="sec">
   <div class="sec-title">5. REFRAKCJA PODMIOTOWA (SUBIEKTYWNA) – DAL</div>
 
@@ -429,6 +431,26 @@
     <tr><td class="lbl">MPMVA</td>
         <td class="val">OP: {{ data.get('mpmva_op','—') }} D &nbsp; OL: {{ data.get('mpmva_ol','—') }} D</td></tr>
     {% endif %}
+  </table>
+  {% endif %}
+
+  {% if s5_5 %}
+  <div class="subsec-title">5.5. Ostrość wzroku z korekcją podmiotową</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>Dal – z kor. podmiotową</th><th>Bliż – z kor. podmiotową</th></tr>
+    </thead>
+    <tbody>
+      {% for eye, pfx in [('OP (OD)','subj_va_op'),('OL (OS)','subj_va_ol'),('OPL (OU)','subj_va_ou')] %}
+      {% if has_any(data, pfx+'_far', pfx+'_near') %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(pfx+'_far','') or '—' }}</td>
+        <td>{{ data.get(pfx+'_near','') or '—' }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
   </table>
   {% endif %}
 
