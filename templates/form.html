@@ -1,0 +1,1087 @@
+{% extends "base.html" %}
+{% block title %}Formularz Badania{% endblock %}
+{% block content %}
+
+{# ---- makra ------------------------------------------------------------ #}
+{% macro va_sel(fname) %}
+<select name="{{ fname }}" class="va-sel">
+  <option value="">—</option>
+  <option value="2.0">2,0</option>
+  <option value="1.6">1,6</option>
+  <option value="1.25">1,25</option>
+  <option value="1.0">1,0</option>
+  <option value="0.8">0,8</option>
+  <option value="0.63">0,63</option>
+  <option value="0.5">0,5</option>
+  <option value="0.4">0,4</option>
+  <option value="0.32">0,32</option>
+  <option value="0.25">0,25</option>
+  <option value="0.2">0,2</option>
+  <option value="0.16">0,16</option>
+  <option value="0.1">0,1</option>
+  <option value="0.05">0,05</option>
+  <option value="LC">LC (licz. palców)</option>
+  <option value="RM">RM (ruchy rąk)</option>
+  <option value="PP">PP (pocz. światła)</option>
+  <option value="0">0 (brak)</option>
+</select>
+{% endmacro %}
+
+{% macro sph_in(fname) %}
+<input type="number" name="{{ fname }}" min="-25" max="25" step="0.25"
+       class="num-in sph" placeholder="0.00">
+{% endmacro %}
+
+{% macro cyl_in(fname) %}
+<input type="number" name="{{ fname }}" min="-10" max="10" step="0.25"
+       class="num-in cyl" placeholder="0.00">
+{% endmacro %}
+
+{% macro axis_in(fname) %}
+<input type="number" name="{{ fname }}" min="1" max="180" step="1"
+       class="num-in axis" placeholder="°">
+{% endmacro %}
+
+{% macro add_in(fname) %}
+<input type="number" name="{{ fname }}" min="0" max="5" step="0.25"
+       class="num-in add" placeholder="0.00">
+{% endmacro %}
+
+{% macro prism_in(fname) %}
+<input type="text" name="{{ fname }}" class="short-in" placeholder="np. 2Δ BO">
+{% endmacro %}
+
+{% macro pd_in(fname) %}
+<input type="number" name="{{ fname }}" min="40" max="80" step="0.5"
+       class="num-in pd" placeholder="mm">
+{% endmacro %}
+
+{% macro efron_sel(fname) %}
+<select name="{{ fname }}" class="efron-sel">
+  <option value="">—</option>
+  <option value="0">0 – norma</option>
+  <option value="1">1 – łagodny</option>
+  <option value="2">2 – umiarkowany</option>
+  <option value="3">3 – nasilony</option>
+  <option value="4">4 – ciężki</option>
+</select>
+{% endmacro %}
+
+{# ---- pasek narzędzi --------------------------------------------------- #}
+<div class="toolbar no-print">
+  <div class="toolbar-nav">
+    <a href="#s1">1. Dane</a>
+    <a href="#s2">2. Wywiad</a>
+    <a href="#s3">3. Wstępne</a>
+    <a href="#s4">4. Obj.</a>
+    <a href="#s5">5. Subj.</a>
+    <a href="#s6">6. Bliż</a>
+    <a href="#s7">7. Lampa</a>
+    <a href="#s8">8. Jakość</a>
+    <a href="#s9">9. Diagnoza</a>
+  </div>
+  <div class="toolbar-actions">
+    <span id="saveStatus" class="save-status"></span>
+    <button onclick="saveForm()" class="btn-primary">💾 Zapisz</button>
+    <a id="reportLink" href="#" target="_blank" class="btn-secondary">🖨 Drukuj / Raport</a>
+  </div>
+</div>
+
+<form id="examForm" autocomplete="off">
+
+{# ======================================================================= #}
+{# SEKCJA 1 – DANE OSOBOWE                                                 #}
+{# ======================================================================= #}
+<section id="s1">
+  <div class="sec-header">1. DANE OSOBOWE PACJENTA</div>
+
+  <div class="field-grid col3">
+    <div class="field">
+      <label>Nr karty / ID</label>
+      <input type="text" name="card_id" class="full-in" placeholder="np. 2025/001">
+    </div>
+    <div class="field">
+      <label>Data badania</label>
+      <input type="date" name="exam_date" class="full-in">
+    </div>
+    <div class="field">
+      <label>Optometrysta</label>
+      <input type="text" name="optometrist" class="full-in" list="dl-opto">
+      <datalist id="dl-opto"></datalist>
+    </div>
+  </div>
+
+  <div class="field-grid col2">
+    <div class="field">
+      <label>Imię i nazwisko</label>
+      <input type="text" name="patient_name" class="full-in" placeholder="Nazwisko Imię">
+    </div>
+    <div class="field">
+      <label>PESEL / data urodzenia</label>
+      <input type="text" name="pesel" class="full-in" placeholder="PESEL lub DD.MM.RRRR">
+    </div>
+  </div>
+
+  <div class="field-grid col2">
+    <div class="field">
+      <label>Telefon / e-mail</label>
+      <input type="text" name="phone_email" class="full-in">
+    </div>
+    <div class="field">
+      <label>Zawód / charakter pracy wzrokowej</label>
+      <input type="text" name="occupation" class="full-in" list="dl-occ"
+             placeholder="np. praca biurowa, kierowca">
+      <datalist id="dl-occ">
+        <option value="praca biurowa / ekran">
+        <option value="kierowca zawodowy">
+        <option value="praca fizyczna">
+        <option value="uczeń / student">
+        <option value="emeryt / rencista">
+        <option value="praca precyzyjna (zegarmistrz, złotnik)">
+      </datalist>
+    </div>
+  </div>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 2 – WYWIAD                                                        #}
+{# ======================================================================= #}
+<section id="s2">
+  <div class="sec-header">2. WYWIAD</div>
+
+  <div class="subsec-header">2.1. Skarga główna (powód wizyty)</div>
+  <div class="field">
+    <textarea name="main_complaint" rows="3" class="full-in"
+              placeholder="Opis dolegliwości zgłaszanych przez pacjenta..."></textarea>
+  </div>
+
+  <div class="subsec-header">2.2. Dotychczasowa korekcja</div>
+  <div class="field-grid col4">
+    <div class="field">
+      <label>Rodzaj korekcji</label>
+      <select name="correction_type" class="full-in">
+        <option value="">—</option>
+        <option value="okulary">Okulary</option>
+        <option value="soczewki kontaktowe (SK)">Soczewki kontaktowe (SK)</option>
+        <option value="okulary + SK">Okulary + SK</option>
+        <option value="brak">Brak korekcji</option>
+        <option value="po LASIK/PRK">Po LASIK / PRK</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Data ostatniego badania</label>
+      <input type="text" name="last_exam_date" class="full-in" placeholder="np. 2023">
+    </div>
+    <div class="field">
+      <label>Komfort dotychczasowej korekcji</label>
+      <select name="correction_comfort" class="full-in">
+        <option value="">—</option>
+        <option value="komfortowa">Komfortowa</option>
+        <option value="neutralna">Neutralna</option>
+        <option value="dyskomfort">Dyskomfort</option>
+        <option value="brak zadowolenia">Brak zadowolenia</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Czas użytkowania (h/dobę)</label>
+      <input type="number" name="usage_hours" min="0" max="24" step="0.5" class="full-in">
+    </div>
+  </div>
+
+  <div class="subsec-header">2.3. Wywiad ogólny i okulistyczny</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">Choroby ogólne</td>
+        <td><input type="text" name="general_diseases" class="full-in" list="dl-diseases"
+                   placeholder="cukrzyca, nadciśnienie, choroby autoimmunologiczne...">
+          <datalist id="dl-diseases">
+            <option value="bez chorób ogólnych">
+            <option value="cukrzyca typu 1">
+            <option value="cukrzyca typu 2">
+            <option value="nadciśnienie tętnicze">
+            <option value="choroba niedokrwienna serca">
+            <option value="choroby tarczycy">
+            <option value="SM (stwardnienie rozsiane)">
+            <option value="reumatoidalne zapalenie stawów">
+          </datalist>
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">Przyjmowane leki</td>
+        <td><input type="text" name="medications" class="full-in"
+                   placeholder="nazwy leków lub 'nie przyjmuje'"></td>
+      </tr>
+      <tr>
+        <td class="interview-label">Alergie</td>
+        <td><input type="text" name="allergies" class="full-in"
+                   placeholder="alergie lub 'brak'"></td>
+      </tr>
+      <tr>
+        <td class="interview-label">Choroby / urazy oczu</td>
+        <td><input type="text" name="eye_diseases" class="full-in"
+                   placeholder="operacje, urazy, schorzenia okulistyczne..."></td>
+      </tr>
+      <tr>
+        <td class="interview-label">Wywiad rodzinny (oczy)</td>
+        <td><input type="text" name="family_history" class="full-in"
+                   placeholder="jaskra, zez, AMD, krótkowzroczność w rodzinie..."></td>
+      </tr>
+      <tr>
+        <td class="interview-label">Praca przy ekranie (h/dobę)</td>
+        <td><input type="number" name="screen_hours" min="0" max="24" step="0.5"
+                   style="width:80px"> h</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 3 – BADANIA WSTĘPNE                                              #}
+{# ======================================================================= #}
+<section id="s3">
+  <div class="sec-header">3. BADANIA WSTĘPNE</div>
+
+  <div class="subsec-header">3.1. Ostrość wzroku (VA)</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Oko</th>
+        <th>Dal – bez korekcji</th>
+        <th>Dal – z korekcją</th>
+        <th>Bliż – bez korekcji</th>
+        <th>Bliż – z korekcją</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="eye-label op">OP (OD)</td>
+        <td>{{ va_sel('va_op_far_nc') }}</td>
+        <td>{{ va_sel('va_op_far_c') }}</td>
+        <td>{{ va_sel('va_op_near_nc') }}</td>
+        <td>{{ va_sel('va_op_near_c') }}</td>
+      </tr>
+      <tr>
+        <td class="eye-label ol">OL (OS)</td>
+        <td>{{ va_sel('va_ol_far_nc') }}</td>
+        <td>{{ va_sel('va_ol_far_c') }}</td>
+        <td>{{ va_sel('va_ol_near_nc') }}</td>
+        <td>{{ va_sel('va_ol_near_c') }}</td>
+      </tr>
+      <tr>
+        <td class="eye-label ou">OPL (OU)</td>
+        <td>{{ va_sel('va_ou_far_nc') }}</td>
+        <td>{{ va_sel('va_ou_far_c') }}</td>
+        <td>{{ va_sel('va_ou_near_nc') }}</td>
+        <td>{{ va_sel('va_ou_near_c') }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">3.2. Widzenie obuoczne – wstępne</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">3.2.1. Widzenie stereoskopowe</td>
+        <td>
+          Test: <input type="text" name="stereo_test" class="short-in" list="dl-stereo" placeholder="TNO, Titmus, Randot...">
+          <datalist id="dl-stereo">
+            <option value="TNO"><option value="Titmus"><option value="Randot"><option value="Lang">
+          </datalist>
+          &nbsp; Wynik: <input type="number" name="stereo_result" min="0" max="3000" step="10"
+                               class="short-in" placeholder="&#8243; arc">
+          &Prime; arc
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.2.2. Tłumienie/forie/tropie – dal</td>
+        <td>
+          Metoda: <input type="text" name="binocular_far_method" class="mid-in" list="dl-bino-method">
+          &nbsp; Wynik: <input type="text" name="binocular_far_result" class="mid-in">
+          <datalist id="dl-bino-method">
+            <option value="Cover test"><option value="Maddox wing"><option value="Hirschberg">
+            <option value="Brückner"><option value="Von Graefe">
+          </datalist>
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.2.2. Tłumienie/forie/tropie – bliż</td>
+        <td>
+          Metoda: <input type="text" name="binocular_near_method" class="mid-in" list="dl-bino-method">
+          &nbsp; Wynik: <input type="text" name="binocular_near_result" class="mid-in">
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">3.3–3.10. Pozostałe badania wstępne</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">3.3. Oko dominujące</td>
+        <td>
+          Dal:
+          <select name="dominant_eye_far">
+            <option value="">—</option><option value="OP">OP</option><option value="OL">OL</option>
+          </select>
+          &nbsp; Bliż:
+          <select name="dominant_eye_near">
+            <option value="">—</option><option value="OP">OP</option><option value="OL">OL</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.4. Ruchy oczu</td>
+        <td>
+          Wersje: <input type="text" name="eye_mov_versions" class="mid-in" placeholder="prawidłowe">
+          &nbsp; Dukcje: <input type="text" name="eye_mov_ductions" class="mid-in" placeholder="prawidłowe">
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.5. Pole widzenia (konfrontacyjne)</td>
+        <td><input type="text" name="visual_field" class="full-in" placeholder="prawidłowe / ograniczenie w kwadrancie..."></td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.6. Test Amslera</td>
+        <td>
+          OP: <input type="text" name="amsler_op" class="mid-in" list="dl-amsler" placeholder="prawidłowy">
+          &nbsp; OL: <input type="text" name="amsler_ol" class="mid-in" list="dl-amsler" placeholder="prawidłowy">
+          <datalist id="dl-amsler">
+            <option value="prawidłowy"><option value="metamorfopsje"><option value="mroczek">
+          </datalist>
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.7. Punkt bliski akomodacji (PPA)</td>
+        <td>
+          OP: <input type="number" name="ppa_op" min="0" max="50" step="0.5" class="short-in"> cm
+          &nbsp; OL: <input type="number" name="ppa_ol" min="0" max="50" step="0.5" class="short-in"> cm
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.8. Punkt bliski konwergencji (PPK)</td>
+        <td>
+          Rozb. (break): <input type="number" name="ppk_break" min="0" max="50" step="0.5" class="short-in"> cm
+          &nbsp; Powr. (recovery): <input type="number" name="ppk_recovery" min="0" max="50" step="0.5" class="short-in"> cm
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.9. Widzenie barw</td>
+        <td>
+          Test: <input type="text" name="color_test" class="short-in" list="dl-color">
+          <datalist id="dl-color">
+            <option value="Ishihara"><option value="Farnsworth D-15"><option value="HRR">
+          </datalist>
+          &nbsp; Wynik: <input type="text" name="color_result" class="mid-in" placeholder="prawidłowe / deficyt...">
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">3.10. Ciśnienie wewnątrzgałkowe</td>
+        <td>
+          OP: <input type="number" name="iop_op" min="0" max="80" step="0.1" class="short-in"> mmHg
+          &nbsp; OL: <input type="number" name="iop_ol" min="0" max="80" step="0.1" class="short-in"> mmHg
+          &nbsp; Metoda: <input type="text" name="iop_method" class="short-in" list="dl-iop">
+          <datalist id="dl-iop">
+            <option value="aplanacyjna (Goldmann)"><option value="bezkontaktowa (NCT)">
+            <option value="iCare"><option value="Perkins">
+          </datalist>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 4 – REFRAKCJA PRZEDMIOTOWA (OBIEKTYWNA)                         #}
+{# ======================================================================= #}
+<section id="s4">
+  <div class="sec-header">4. REFRAKCJA PRZEDMIOTOWA (OBIEKTYWNA)</div>
+
+  <div class="subsec-header">4.0. Frontofokometria – pomiar dotychczasowej korekcji</div>
+  <table class="data-table refr-table">
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>Add (D)</th><th>Pryzmat / baza</th><th>PD (mm)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="eye-label op">OP</td>
+        <td>{{ sph_in('fof_op_sph') }}</td><td>{{ cyl_in('fof_op_cyl') }}</td>
+        <td>{{ axis_in('fof_op_axis') }}</td><td>{{ add_in('fof_op_add') }}</td>
+        <td>{{ prism_in('fof_op_prism') }}</td><td>{{ pd_in('fof_op_pd') }}</td>
+      </tr>
+      <tr>
+        <td class="eye-label ol">OL</td>
+        <td>{{ sph_in('fof_ol_sph') }}</td><td>{{ cyl_in('fof_ol_cyl') }}</td>
+        <td>{{ axis_in('fof_ol_axis') }}</td><td>{{ add_in('fof_ol_add') }}</td>
+        <td>{{ prism_in('fof_ol_prism') }}</td><td>{{ pd_in('fof_ol_pd') }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">4.1. Autorefraktometria / skiaskopia (retinoskopia)</div>
+  <table class="data-table refr-table">
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>Metoda</th><th>Cykl./bez</th><th>Uwagi</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="eye-label op">OP</td>
+        <td>{{ sph_in('auto_op_sph') }}</td><td>{{ cyl_in('auto_op_cyl') }}</td>
+        <td>{{ axis_in('auto_op_axis') }}</td>
+        <td><select name="auto_op_method">
+          <option value="">—</option>
+          <option value="autorefraktometr">Autorefraktometr</option>
+          <option value="skiaskopia">Skiaskopia</option>
+          <option value="retinoskopia">Retinoskopia</option>
+        </select></td>
+        <td><select name="auto_op_cyclo">
+          <option value="">—</option>
+          <option value="bez cykloplegii">Bez cykloplegii</option>
+          <option value="z cykloplegią">Z cykloplegią</option>
+        </select></td>
+        <td><input type="text" name="auto_op_notes" class="full-in"></td>
+      </tr>
+      <tr>
+        <td class="eye-label ol">OL</td>
+        <td>{{ sph_in('auto_ol_sph') }}</td><td>{{ cyl_in('auto_ol_cyl') }}</td>
+        <td>{{ axis_in('auto_ol_axis') }}</td>
+        <td><select name="auto_ol_method">
+          <option value="">—</option>
+          <option value="autorefraktometr">Autorefraktometr</option>
+          <option value="skiaskopia">Skiaskopia</option>
+          <option value="retinoskopia">Retinoskopia</option>
+        </select></td>
+        <td><select name="auto_ol_cyclo">
+          <option value="">—</option>
+          <option value="bez cykloplegii">Bez cykloplegii</option>
+          <option value="z cykloplegią">Z cykloplegią</option>
+        </select></td>
+        <td><input type="text" name="auto_ol_notes" class="full-in"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">4.2. Keratometria</div>
+  <table class="data-table">
+    <thead>
+      <tr><th>Oko</th><th>K1 (D / mm @ °)</th><th>K2 (D / mm @ °)</th>
+          <th>ΔK (astygm. rog.)</th><th>Jakość mir. / uwagi</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="eye-label op">OP</td>
+        <td><input type="text" name="ker_op_k1" class="full-in" placeholder="np. 43.50 / 7.75 @ 90"></td>
+        <td><input type="text" name="ker_op_k2" class="full-in" placeholder="np. 44.25 / 7.62 @ 180"></td>
+        <td><input type="number" name="ker_op_dk" step="0.25" class="num-in cyl" placeholder="D"></td>
+        <td><input type="text" name="ker_op_notes" class="full-in" list="dl-ker">
+          <datalist id="dl-ker"><option value="dobra"><option value="zmienna"><option value="zła (rogówka nieregularna)"></datalist></td>
+      </tr>
+      <tr>
+        <td class="eye-label ol">OL</td>
+        <td><input type="text" name="ker_ol_k1" class="full-in"></td>
+        <td><input type="text" name="ker_ol_k2" class="full-in"></td>
+        <td><input type="number" name="ker_ol_dk" step="0.25" class="num-in cyl"></td>
+        <td><input type="text" name="ker_ol_notes" class="full-in" list="dl-ker"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">4.3. Ostrość wzroku z korekcją przedmiotową (obiektywną)</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Oko</th>
+        <th>Dal – z kor. obj.</th>
+        <th>Bliż – z kor. obj.</th>
+        <th>Uwagi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="eye-label op">OP (OD)</td>
+        <td>{{ va_sel('obj_va_op_far') }}</td>
+        <td>{{ va_sel('obj_va_op_near') }}</td>
+        <td><input type="text" name="obj_va_op_notes" class="full-in"></td>
+      </tr>
+      <tr>
+        <td class="eye-label ol">OL (OS)</td>
+        <td>{{ va_sel('obj_va_ol_far') }}</td>
+        <td>{{ va_sel('obj_va_ol_near') }}</td>
+        <td><input type="text" name="obj_va_ol_notes" class="full-in"></td>
+      </tr>
+      <tr>
+        <td class="eye-label ou">OPL (OU)</td>
+        <td>{{ va_sel('obj_va_ou_far') }}</td>
+        <td>{{ va_sel('obj_va_ou_near') }}</td>
+        <td><input type="text" name="obj_va_ou_notes" class="full-in"></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 5 – REFRAKCJA PODMIOTOWA (SUBIEKTYWNA) – DAL                    #}
+{# ======================================================================= #}
+<section id="s5">
+  <div class="sec-header">5. REFRAKCJA PODMIOTOWA (SUBIEKTYWNA) – DAL</div>
+
+  <div class="subsec-header">5.1–5.2. Monokularna refrakcja podmiotowa</div>
+  <table class="data-table refr-table">
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>VA z kor.</th><th>Cz-Z</th><th>Cyl skrzyż.</th><th>Mgła (+1.50)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="eye-label op">OP</td>
+        <td>{{ sph_in('subj_op_sph') }}</td><td>{{ cyl_in('subj_op_cyl') }}</td>
+        <td>{{ axis_in('subj_op_axis') }}</td>
+        <td>{{ va_sel('subj_op_va') }}</td>
+        <td><select name="subj_op_rg" class="short-sel">
+          <option value="">—</option>
+          <option value="=">równe</option>
+          <option value="cz">czerwone</option>
+          <option value="zi">zielone</option>
+        </select></td>
+        <td><input type="text" name="subj_op_cyl_cross" class="short-in" placeholder="potwierdzony"></td>
+        <td>{{ va_sel('subj_op_fog') }}</td>
+      </tr>
+      <tr>
+        <td class="eye-label ol">OL</td>
+        <td>{{ sph_in('subj_ol_sph') }}</td><td>{{ cyl_in('subj_ol_cyl') }}</td>
+        <td>{{ axis_in('subj_ol_axis') }}</td>
+        <td>{{ va_sel('subj_ol_va') }}</td>
+        <td><select name="subj_ol_rg" class="short-sel">
+          <option value="">—</option>
+          <option value="=">równe</option>
+          <option value="cz">czerwone</option>
+          <option value="zi">zielone</option>
+        </select></td>
+        <td><input type="text" name="subj_ol_cyl_cross" class="short-in"></td>
+        <td>{{ va_sel('subj_ol_fog') }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">5.3. Refrakcja podmiotowa obuoczna</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">5.3.1. Równoważenie bodźca do akomodacji (metoda)</td>
+        <td><input type="text" name="binocular_balance" class="full-in" list="dl-balance"
+                   placeholder="Humphriss, prism dissociation, polaryzacja...">
+          <datalist id="dl-balance">
+            <option value="Humphriss (mgła +0.75)"><option value="Dysocjacja pryzmatyczna">
+            <option value="Równoważenie polaryzacyjne"><option value="Płetwy Risley'a">
+          </datalist>
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">5.3.2. MPMVA obuoczne</td>
+        <td>
+          OP: Sph <input type="number" name="mpmva_op" min="-25" max="25" step="0.25" class="num-in sph"> D
+          &nbsp;&nbsp; OL: Sph <input type="number" name="mpmva_ol" min="-25" max="25" step="0.25" class="num-in sph"> D
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">5.4. Widzenie obuoczne w dobranej korekcji do dali</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">Tłumienie / forie / tropie</td>
+        <td>
+          Metoda: <input type="text" name="far_bino_method" class="mid-in" list="dl-bino-method">
+          &nbsp; Wynik: <input type="text" name="far_bino_result" class="mid-in">
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">5.4.1. Forie (Δ pryzm.)</td>
+        <td>
+          Horyz.: <input type="text" name="phoria_far_h" class="short-in" placeholder="np. 2 ezo"> Δ
+          &nbsp; Wert.: <input type="text" name="phoria_far_v" class="short-in" placeholder="np. 0"> Δ
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">5.4.2. Zakresy wergencji BO</td>
+        <td>
+          Poz./Rozm./Powr.:
+          <input type="text" name="verg_bo_pos" class="tiny-in"> /
+          <input type="text" name="verg_bo_blur" class="tiny-in"> /
+          <input type="text" name="verg_bo_break" class="tiny-in"> Δ
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">5.4.2. Zakresy wergencji BI</td>
+        <td>
+          Poz./Rozm./Powr.:
+          <input type="text" name="verg_bi_pos" class="tiny-in"> /
+          <input type="text" name="verg_bi_blur" class="tiny-in"> /
+          <input type="text" name="verg_bi_break" class="tiny-in"> Δ
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">Zakresy wertykalne BU / BD</td>
+        <td>
+          BU: <input type="text" name="verg_bu" class="short-in"> Δ
+          &nbsp; BD: <input type="text" name="verg_bd" class="short-in"> Δ
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">5.4.3. Uściślenie korekcji do dali</td>
+        <td><input type="text" name="far_correction_final" class="full-in" placeholder="uwagi po korekcji obuocznej"></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 6 – WIDZENIE BLISKIE                                             #}
+{# ======================================================================= #}
+<section id="s6">
+  <div class="sec-header">6. WIDZENIE BLISKIE (PRACA Z BLIŻY)</div>
+
+  <div class="subsec-header">6.1–6.3. Akomodacja i dodatek wstępny</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">6.1. Amplituda akomodacji</td>
+        <td>
+          OP: <input type="number" name="amp_acc_op" min="0" max="20" step="0.25" class="num-in sph"> D
+          &nbsp; OL: <input type="number" name="amp_acc_ol" min="0" max="20" step="0.25" class="num-in sph"> D
+          &nbsp; Metoda:
+          <select name="amp_acc_method">
+            <option value="">—</option>
+            <option value="push-up">Push-up</option>
+            <option value="Dondersa">Tablicy Dondersa</option>
+            <option value="push-down">Push-down</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">6.2. Wstępny dodatek do bliży (Add)</td>
+        <td>
+          Add: +<input type="number" name="add_preliminary" min="0" max="5" step="0.25" class="num-in add"> D
+          &nbsp; Odl. robocza: <input type="number" name="add_working_dist" min="10" max="100" step="1"
+                                      class="short-in"> cm
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">6.3. Zakresy ostrego widzenia w Add</td>
+        <td>
+          Od: <input type="number" name="add_range_from" min="0" max="100" step="1" class="short-in"> cm
+          &nbsp; Do: <input type="number" name="add_range_to" min="0" max="100" step="1" class="short-in"> cm
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">6.4. Widzenie obuoczne z bliska</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">6.4.1. Tłumienie / forie / tropie</td>
+        <td>
+          Metoda: <input type="text" name="near_bino_method" class="mid-in" list="dl-bino-method">
+          &nbsp; Wynik: <input type="text" name="near_bino_result" class="mid-in">
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">Forie z bliska (Δ)</td>
+        <td>
+          Horyz.: <input type="text" name="phoria_near_h" class="short-in"> Δ
+          &nbsp; Wert.: <input type="text" name="phoria_near_v" class="short-in"> Δ
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">AC/A (gradient / heterofor.)</td>
+        <td>
+          <input type="text" name="aca_ratio" class="short-in"> Δ/D
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">6.4.2. Zakresy wergencji BO / BI</td>
+        <td>
+          BO: <input type="text" name="near_verg_bo" class="short-in" placeholder="poz/rozm/powr"> Δ
+          &nbsp; BI: <input type="text" name="near_verg_bi" class="short-in" placeholder="poz/rozm/powr"> Δ
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">6.5–6.7. Sprawność i odpowiedź akomodacji</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">6.5. Sprawność akomodacji (flippery ±2.00 D)</td>
+        <td>
+          OP/OL mono: <input type="number" name="acc_facility_mono" min="0" max="30" step="1" class="short-in"> cpm
+          &nbsp; OPL bino: <input type="number" name="acc_facility_bino" min="0" max="30" step="1" class="short-in"> cpm
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">6.6. Odpowiedź akomodacji (MEM / FCC)</td>
+        <td>
+          OP: <input type="number" name="acc_response_op" min="-2" max="5" step="0.25" class="num-in sph"> D
+          &nbsp; OL: <input type="number" name="acc_response_ol" min="-2" max="5" step="0.25" class="num-in sph"> D
+          &nbsp; Metoda:
+          <select name="acc_response_method">
+            <option value="">—</option><option value="MEM">MEM</option><option value="FCC">FCC</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">6.7. Ostateczny dodatek do bliży</td>
+        <td>
+          Add = +<input type="number" name="final_add" min="0" max="5" step="0.25" class="num-in add"> D
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 7 – LAMPA SZCZELINOWA                                            #}
+{# ======================================================================= #}
+<section id="s7">
+  <div class="sec-header">7. BADANIE W LAMPIE SZCZELINOWEJ</div>
+
+  <div class="subsec-header">7.1. Ocena przedniego odcinka oka (skala Efron 0–4)</div>
+  <table class="data-table slit-table">
+    <thead>
+      <tr><th>Element</th>
+          <th>OP – stopień</th><th>OL – stopień</th>
+          <th>OP – opis</th><th>OL – opis</th></tr>
+    </thead>
+    <tbody>
+      {% set slit_items = [
+        ('film_łzowy','Film łzowy (TBUT, menisk łzowy)'),
+        ('powieki','Powieki / brzegi powiek'),
+        ('spojówka_gałk','Spojówka gałkowa'),
+        ('spojówka_tarck','Spojówka tarczkowa'),
+        ('rogówka','Rogówka (test fluoresceiną)'),
+        ('rąbek','Rąbek rogówki'),
+        ('twardówka','Twardówka'),
+        ('tęczówka','Tęczówka'),
+        ('komora','Komora przednia'),
+        ('soczewka','Soczewka')
+      ] %}
+      {% for key, label in slit_items %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>{{ efron_sel('slit_op_grade_' + key) }}</td>
+        <td>{{ efron_sel('slit_ol_grade_' + key) }}</td>
+        <td><input type="text" name="slit_op_desc_{{ key }}" class="full-in"></td>
+        <td><input type="text" name="slit_ol_desc_{{ key }}" class="full-in"></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="subsec-header">7.2. Tylny odcinek oka (oftalmoskopia / fundus)</div>
+  <table class="data-table">
+    <thead>
+      <tr><th>Element</th><th>OP</th><th>OL</th></tr>
+    </thead>
+    <tbody>
+      {% set fundus_items = [
+        ('tarczka','Tarcza n. wzrokowego (C/D)'),
+        ('arkada_g','Arkada górna (naczynia)'),
+        ('arkada_d','Arkada dolna (naczynia)'),
+        ('plamka','Pole plamkowe (plamka)'),
+        ('obwód','Obwód siatkówki'),
+        ('ciałosz','Ciało szkliste')
+      ] %}
+      {% for key, label in fundus_items %}
+      <tr>
+        <td>{{ label }}</td>
+        <td><input type="text" name="fundus_op_{{ key }}" class="full-in" list="dl-fundus">
+          <datalist id="dl-fundus"><option value="bez zmian"><option value="zmiana opisana poniżej"></datalist>
+        </td>
+        <td><input type="text" name="fundus_ol_{{ key }}" class="full-in" list="dl-fundus"></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="field">
+    <label>Uwagi do badania dna oka</label>
+    <textarea name="fundus_notes" rows="2" class="full-in"></textarea>
+  </div>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 8 – OCENA JAKOŚCI WIDZENIA                                       #}
+{# ======================================================================= #}
+<section id="s8">
+  <div class="sec-header">8. OCENA JAKOŚCI WIDZENIA</div>
+
+  <div class="subsec-header">8.1. Wrażliwość na kontrast i jakość obrazu</div>
+  <table class="data-table">
+    <thead>
+      <tr><th>Test / parametr</th><th>OP</th><th>OL</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Wrażliwość na kontrast (Pelli-Robson / CSV-1000)</td>
+        <td><input type="text" name="cs_op" class="full-in" placeholder="wynik / log jednostki"></td>
+        <td><input type="text" name="cs_ol" class="full-in"></td>
+      </tr>
+      <tr>
+        <td>Olśnienie (glare) / widzenie zmierzchowe</td>
+        <td><input type="text" name="glare_op" class="full-in"></td>
+        <td><input type="text" name="glare_ol" class="full-in"></td>
+      </tr>
+      <tr>
+        <td>Aberracje wyższego rzędu (HOA / RMS)</td>
+        <td><input type="text" name="hoa_op" class="full-in" placeholder="μm"></td>
+        <td><input type="text" name="hoa_ol" class="full-in" placeholder="μm"></td>
+      </tr>
+      <tr>
+        <td>Średnica źrenicy (foto / mezopowa)</td>
+        <td><input type="text" name="pupil_op" class="full-in" placeholder="np. 3.5 / 6.0 mm"></td>
+        <td><input type="text" name="pupil_ol" class="full-in"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="subsec-header">8.2. Subiektywna ocena widzenia (skala 0–10)</div>
+  <table class="data-table">
+    <thead>
+      <tr><th>Aspekt</th><th>Ocena pacjenta (0–10)</th></tr>
+    </thead>
+    <tbody>
+      {% set vas_items = [
+        ('vas_far','Ostrość widzenia do dali'),
+        ('vas_near','Ostrość widzenia do bliży'),
+        ('vas_day','Komfort widzenia w ciągu dnia'),
+        ('vas_eve','Komfort widzenia po pracy / wieczorem'),
+        ('vas_night','Widzenie w warunkach zmierzchowych / nocnych'),
+        ('vas_3d','Wrażenie głębi (3D)'),
+        ('vas_aste','Brak objawów astenopijnych (zmęczenia oczu)'),
+        ('vas_total','Ogólna satysfakcja z widzenia')
+      ] %}
+      {% for key, label in vas_items %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>
+          <input type="range" name="{{ key }}_range" min="0" max="10" step="1"
+                 oninput="document.querySelector('[name={{ key }}]').value=this.value"
+                 style="width:180px; vertical-align:middle">
+          <input type="number" name="{{ key }}" min="0" max="10" step="1"
+                 class="tiny-num"
+                 oninput="document.querySelector('[name={{ key }}_range]').value=this.value"> / 10
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 9 – DIAGNOZA I ZALECENIA                                         #}
+{# ======================================================================= #}
+<section id="s9">
+  <div class="sec-header">9. DIAGNOZA OPTOMETRYCZNA I ZALECENIA</div>
+
+  <div class="subsec-header">9.1. Rozpoznanie optometryczne</div>
+  <div class="field">
+    <textarea name="diagnosis" rows="4" class="full-in"
+              placeholder="np. Krótkowzroczność obu oczu z astygmatyzmem rogówkowym. Esoforia dal — kompensowana. Niedobór konwergencji..."></textarea>
+  </div>
+
+  <div class="subsec-header">9.2. Końcowa zalecana korekcja okularowa</div>
+  <table class="data-table refr-table">
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>Add (D)</th><th>Pryzmat / baza</th><th>PD (mm)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="eye-label op">OP</td>
+        <td>{{ sph_in('final_op_sph') }}</td><td>{{ cyl_in('final_op_cyl') }}</td>
+        <td>{{ axis_in('final_op_axis') }}</td><td>{{ add_in('final_op_add') }}</td>
+        <td>{{ prism_in('final_op_prism') }}</td><td>{{ pd_in('final_op_pd') }}</td>
+      </tr>
+      <tr>
+        <td class="eye-label ol">OL</td>
+        <td>{{ sph_in('final_ol_sph') }}</td><td>{{ cyl_in('final_ol_cyl') }}</td>
+        <td>{{ axis_in('final_ol_axis') }}</td><td>{{ add_in('final_ol_add') }}</td>
+        <td>{{ prism_in('final_ol_prism') }}</td><td>{{ pd_in('final_ol_pd') }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="field-grid col2" style="margin-top:10px">
+    <div class="field">
+      <label>Typ soczewek</label>
+      <select name="lens_type" class="full-in">
+        <option value="">—</option>
+        <option value="jednoogniskowe">Jednoogniskowe</option>
+        <option value="progresywne">Progresywne</option>
+        <option value="bifokalne">Bifokalne</option>
+        <option value="biurowe">Biurowe (office)</option>
+        <option value="do pracy z bliska">Do pracy z bliska</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Powłoki / filtry</label>
+      <input type="text" name="lens_coatings" class="full-in" list="dl-coatings"
+             placeholder="AR, blue-filter, fotochrom...">
+      <datalist id="dl-coatings">
+        <option value="AR (antyrefleks)">
+        <option value="AR + filtr blue-light">
+        <option value="fotochromowe">
+        <option value="AR + fotochrom.">
+        <option value="brak powłok">
+      </datalist>
+    </div>
+  </div>
+
+  <div class="subsec-header">9.3. Zalecenia i dalsze postępowanie</div>
+  <table class="interview-table">
+    <tbody>
+      <tr>
+        <td class="interview-label">Skierowanie do okulisty / inny specjalista</td>
+        <td>
+          <select name="referral">
+            <option value="">—</option>
+            <option value="NIE">NIE</option>
+            <option value="TAK – planowy">TAK – tryb planowy</option>
+            <option value="TAK – pilny">TAK – tryb pilny</option>
+          </select>
+          &nbsp; Uzasadnienie: <input type="text" name="referral_reason" class="mid-in">
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">Ćwiczenia wzrokowe / terapia widzenia</td>
+        <td><input type="text" name="vision_therapy" class="full-in" placeholder="zalecone / nie wskazane / program..."></td>
+      </tr>
+      <tr>
+        <td class="interview-label">Higiena widzenia / zalecenia ergonomiczne</td>
+        <td><textarea name="hygiene_advice" rows="2" class="full-in"
+                      placeholder="przerwy 20-20-20, odległość ekranu, oświetlenie..."></textarea></td>
+      </tr>
+      <tr>
+        <td class="interview-label">Termin kontroli</td>
+        <td>
+          <input type="date" name="followup_date" class="short-in">
+          &nbsp; lub za: <input type="text" name="followup_text" class="short-in" placeholder="np. 12 miesięcy">
+        </td>
+      </tr>
+      <tr>
+        <td class="interview-label">Uwagi dodatkowe</td>
+        <td><textarea name="additional_notes" rows="2" class="full-in"></textarea></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+{# ======================================================================= #}
+{# SEKCJA 10 – ZGODA I PODPISY                                             #}
+{# ======================================================================= #}
+<section id="s10">
+  <div class="sec-header">10. Świadoma zgoda i podpisy</div>
+  <div class="signatures-info">
+    <p>Pacjent oświadcza, że został poinformowany o wynikach badania i zaleceniach.</p>
+    <p style="margin-top:8px; font-size:11px; color:#666">
+      Podpisy składane na wydruku / egzemplarzu papierowym formularza.
+      Wygeneruj raport (przycisk <em>Drukuj / Raport</em>) i wydrukuj do podpisania.
+    </p>
+  </div>
+</section>
+
+</form><!-- #examForm -->
+
+{# ======================================================================= #}
+{# JAVASCRIPT                                                               #}
+{# ======================================================================= #}
+<script>
+const EXAM_ID = {{ exam_id }};
+const INIT_DATA = {{ init_data|safe }};
+let currentId = EXAM_ID || 0;
+
+function setField(name, val) {
+  if (val === null || val === undefined || val === '') return;
+  const el = document.querySelector('[name="' + name + '"]');
+  if (!el) return;
+  el.value = val;
+  // sync range slider if exists
+  const rng = document.querySelector('[name="' + name + '_range"]');
+  if (rng) rng.value = val;
+}
+
+function loadData(d) {
+  Object.entries(d).forEach(([k, v]) => setField(k, v));
+}
+
+function collectData() {
+  const d = { __id: currentId };
+  document.querySelectorAll('#examForm [name]').forEach(el => {
+    if (el.name && !el.name.endsWith('_range')) {
+      d[el.name] = el.value;
+    }
+  });
+  return d;
+}
+
+const statusEl = document.getElementById('saveStatus');
+const reportLink = document.getElementById('reportLink');
+
+async function saveForm() {
+  const data = collectData();
+  statusEl.textContent = 'Zapisywanie…';
+  statusEl.className = 'save-status saving';
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (json.ok) {
+      currentId = json.id;
+      if (!EXAM_ID) {
+        history.replaceState({}, '', '/exam/' + currentId);
+      }
+      reportLink.href = '/report/' + currentId;
+      reportLink.style.pointerEvents = '';
+      const t = new Date().toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'});
+      statusEl.textContent = 'Zapisano ' + t;
+      statusEl.className = 'save-status saved';
+    } else {
+      statusEl.textContent = 'Błąd zapisu';
+      statusEl.className = 'save-status error';
+    }
+  } catch(e) {
+    statusEl.textContent = 'Błąd połączenia';
+    statusEl.className = 'save-status error';
+  }
+}
+
+// auto-save co 90 sekund
+setInterval(saveForm, 90000);
+
+// inicjalizacja
+window.addEventListener('DOMContentLoaded', () => {
+  loadData(INIT_DATA);
+  if (currentId) {
+    reportLink.href = '/report/' + currentId;
+  } else {
+    reportLink.href = '#';
+    reportLink.title = 'Najpierw zapisz badanie';
+  }
+});
+
+// Ctrl+S
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveForm();
+  }
+});
+</script>
+
+{% endblock %}

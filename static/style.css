@@ -1,0 +1,264 @@
+/* ===== RESET & VARIABLES ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary:      #1a5276;
+  --primary-lt:   #d6eaf8;
+  --border:       #aab7b8;
+  --bg:           #f2f3f4;
+  --white:        #ffffff;
+  --text:         #1c2833;
+  --op-bg:        #fef9f0;
+  --ol-bg:        #f0f7fe;
+  --ou-bg:        #f4fdf4;
+  --radius:       4px;
+  --shadow:       0 1px 4px rgba(0,0,0,.12);
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.4;
+}
+
+/* ===== NAVIGATION ===== */
+.topnav {
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  height: 46px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: var(--shadow);
+}
+.topnav .brand {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+}
+.topnav .nav-right { display: flex; gap: 16px; align-items: center; }
+.topnav a { color: #aed6f1; text-decoration: none; font-size: 13px; }
+.topnav a:hover { color: #fff; }
+
+/* ===== CONTAINER ===== */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 0 40px; }
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+  background: var(--primary); color: #fff; border: none;
+  padding: 6px 14px; border-radius: var(--radius);
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  text-decoration: none; display: inline-block;
+}
+.btn-primary:hover { background: #154360; }
+.btn-secondary {
+  background: #fff; color: var(--primary); border: 1.5px solid var(--primary);
+  padding: 5px 13px; border-radius: var(--radius);
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  text-decoration: none; display: inline-block;
+}
+.btn-secondary:hover { background: var(--primary-lt); }
+
+/* ===== INDEX PAGE ===== */
+.page-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 16px 18px 10px;
+}
+.page-header h1 { font-size: 20px; flex: 1; }
+.search-form { display: flex; gap: 6px; align-items: center; }
+.search-form input[type=text] {
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  padding: 5px 10px; font-size: 13px; width: 220px;
+}
+.search-form button {
+  background: var(--primary); color: #fff; border: none;
+  padding: 5px 12px; border-radius: var(--radius); cursor: pointer;
+}
+.btn-clear { color: #c0392b; text-decoration: none; font-size: 12px; }
+
+.list-table {
+  width: calc(100% - 36px); margin: 0 18px;
+  border-collapse: collapse; background: var(--white);
+  box-shadow: var(--shadow); border-radius: var(--radius);
+  overflow: hidden;
+}
+.list-table th {
+  background: var(--primary); color: #fff;
+  padding: 8px 10px; text-align: left; font-size: 12px;
+}
+.list-table td { padding: 7px 10px; border-bottom: 1px solid #e5e8ea; }
+.list-table tr:hover { background: var(--primary-lt); }
+.list-table .actions { display: flex; gap: 6px; }
+
+.btn-sm {
+  padding: 3px 9px; border-radius: var(--radius); font-size: 12px;
+  text-decoration: none; cursor: pointer; border: none; display: inline-block;
+}
+.btn-edit   { background: #2980b9; color: #fff; }
+.btn-report { background: #27ae60; color: #fff; }
+.btn-delete { background: #e74c3c; color: #fff; }
+
+.empty { text-align: center; padding: 40px; color: #888; font-size: 15px; }
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--white); border-bottom: 2px solid var(--primary);
+  padding: 6px 14px;
+  position: sticky; top: 46px; z-index: 100;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1);
+}
+.toolbar-nav { display: flex; gap: 2px; flex-wrap: wrap; }
+.toolbar-nav a {
+  color: var(--primary); text-decoration: none; font-size: 12px;
+  padding: 4px 9px; border-radius: 12px; border: 1px solid transparent;
+  font-weight: 500;
+}
+.toolbar-nav a:hover { background: var(--primary-lt); border-color: var(--primary); }
+.toolbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.save-status { font-size: 11px; color: #888; }
+.save-status.saving { color: #f39c12; }
+.save-status.saved   { color: #27ae60; }
+.save-status.error   { color: #c0392b; }
+
+/* ===== FORM SECTIONS ===== */
+section { margin: 0; }
+
+.sec-header {
+  background: var(--primary); color: #fff;
+  font-weight: 700; font-size: 13px;
+  padding: 7px 16px; margin-top: 16px;
+  letter-spacing: .4px;
+}
+
+.subsec-header {
+  background: var(--primary-lt); color: var(--primary);
+  font-weight: 600; font-size: 12px;
+  padding: 4px 16px; margin-top: 8px; margin-bottom: 4px;
+  border-left: 4px solid var(--primary);
+}
+
+/* ===== FIELD GRIDS ===== */
+.field-grid {
+  display: grid; gap: 10px;
+  padding: 8px 16px;
+  background: var(--white);
+}
+.field-grid.col2 { grid-template-columns: 1fr 1fr; }
+.field-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
+.field-grid.col4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label { font-size: 11px; color: #555; font-weight: 500; }
+
+/* ===== INPUTS ===== */
+input[type=text], input[type=number], input[type=date],
+select, textarea {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 7px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--white);
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(26,82,118,.15);
+}
+textarea { resize: vertical; }
+
+.full-in  { width: 100%; }
+.num-in   { width: 72px; text-align: right; }
+.num-in.sph, .num-in.cyl, .num-in.add { width: 72px; }
+.num-in.axis { width: 58px; }
+.num-in.pd   { width: 60px; }
+.short-in { width: 100px; }
+.mid-in   { width: 180px; }
+.tiny-in  { width: 48px; text-align: center; }
+.tiny-num { width: 52px; text-align: center; }
+.va-sel   { width: 130px; }
+.efron-sel { width: 120px; }
+.short-sel { width: 90px; }
+
+/* ===== INTERVIEW TABLE ===== */
+.interview-table {
+  width: 100%; border-collapse: collapse;
+  background: var(--white); margin-bottom: 0;
+}
+.interview-table td {
+  padding: 5px 14px;
+  border-bottom: 1px solid #e5e8ea;
+  vertical-align: middle;
+}
+.interview-table .interview-label {
+  font-weight: 600; font-size: 12px; color: #333;
+  width: 36%; background: #fafbfc;
+  border-right: 1px solid #e0e3e5;
+}
+
+/* ===== DATA TABLES ===== */
+.data-table {
+  width: 100%; border-collapse: collapse;
+  background: var(--white); font-size: 12px;
+}
+.data-table th {
+  background: var(--primary); color: #fff;
+  padding: 5px 8px; font-size: 11px;
+  text-align: center; font-weight: 600;
+}
+.data-table td {
+  border: 1px solid #ccc; padding: 4px 6px;
+  vertical-align: middle;
+}
+
+/* eye labels */
+.eye-label {
+  font-weight: 700; text-align: center; font-size: 12px;
+  width: 60px;
+}
+.eye-label.op { background: var(--op-bg); }
+.eye-label.ol { background: var(--ol-bg); }
+.eye-label.ou { background: var(--ou-bg); }
+
+/* refraction table: center number inputs */
+.refr-table td { text-align: center; }
+.refr-table input, .refr-table select { margin: auto; display: block; }
+
+/* slit lamp table */
+.slit-table td:nth-child(n+4) { width: 22%; }
+
+/* ===== SECTION 8 VAS RANGE ===== */
+input[type=range] { accent-color: var(--primary); }
+
+/* ===== SIGNATURES ===== */
+.signatures-info {
+  background: var(--white); padding: 12px 16px;
+  border-top: 1px solid #e5e8ea;
+  font-size: 12px; color: #555;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .no-print, .toolbar, .topnav { display: none !important; }
+  body { background: #fff; font-size: 10pt; }
+  .container { padding: 0; max-width: none; }
+  section { break-inside: avoid; }
+  .sec-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .subsec-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  input, select, textarea {
+    border: 1px solid #888 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  @page { margin: 12mm; size: A4; }
+}

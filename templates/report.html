@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Raport – {{ data.get('patient_name','—') }} – {{ data.get('exam_date','') }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #000;
+           background: #fff; max-width: 210mm; margin: 0 auto; padding: 10mm; }
+
+    /* ── pasek narzędzi ── */
+    .toolbar { background: #1a5276; color: #fff; padding: 8px 14px; display: flex;
+               align-items: center; gap: 10px; margin-bottom: 12px; border-radius: 4px;
+               flex-wrap: wrap; }
+    .toolbar button { background: #fff; color: #1a5276; border: none; padding: 6px 14px;
+                      border-radius: 3px; cursor: pointer; font-size: 11pt; font-weight: bold; }
+    .toolbar a { color: #aed6f1; font-size: 10pt; text-decoration: none; white-space: nowrap; }
+    .toolbar a.btn-txt { background: #27ae60; color: #fff; padding: 5px 12px;
+                         border-radius: 3px; font-weight: bold; font-size: 10pt; }
+    .toolbar a.btn-txt:hover { background: #1e8449; }
+    .spacer { flex: 1; }
+    .ts { font-size: 9pt; opacity: .75; }
+
+    /* ── dokument ── */
+    h1.doc-title { font-size: 14pt; font-weight: bold; text-align: center;
+                   border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 2px; }
+    .doc-subtitle { text-align: center; font-size: 9pt; color: #444; margin-bottom: 10px; }
+    .header-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+                   margin-bottom: 8px; }
+    .header-field { border-bottom: 1px solid #888; padding: 1px 0; }
+    .header-field span { font-size: 8pt; color: #555; display: block; }
+
+    /* ── sekcje ── */
+    .sec { margin-top: 10px; page-break-inside: avoid; }
+    .sec-title { background: #1a5276; color: #fff; font-weight: bold; font-size: 10pt;
+                 padding: 3px 7px; margin-bottom: 3px;
+                 -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .subsec-title { background: #d6eaf8; color: #1a5276; font-size: 9.5pt; font-weight: bold;
+                    padding: 2px 7px; margin: 5px 0 2px;
+                    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* ── tabele ── */
+    table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    th, td { border: 1px solid #888; padding: 2px 5px; vertical-align: top; }
+    th { background: #eaf2fb; font-weight: bold; text-align: center;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td.lbl { background: #f4f6f7; font-weight: bold; width: 38%;
+             -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td.val { width: 62%; }
+
+    /* ── podpisy ── */
+    .sig-area { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px; }
+    .sig-box { border: 1px solid #888; padding: 8px; min-height: 70px; font-size: 9pt; }
+    .footer-note { margin-top: 8px; font-size: 8pt; color: #555; }
+
+    @media print {
+      .toolbar { display: none !important; }
+      body { padding: 6mm; }
+      @page { margin: 12mm; size: A4; }
+    }
+  </style>
+</head>
+<body>
+
+{# ---- pasek narzędzi (tylko ekran) -------------------------------------- #}
+<div class="toolbar">
+  <button onclick="window.print()">🖨 Drukuj / Zapisz PDF</button>
+  <a href="/text/{{ exam.id }}" class="btn-txt">⬇ Eksport TXT</a>
+  <a href="/exam/{{ exam.id }}">← Wróć do edycji</a>
+  <span class="spacer"></span>
+  <span class="ts">Wygenerowano: {{ exam.updated_at }}</span>
+</div>
+
+{# ---- nagłówek dokumentu ------------------------------------------------ #}
+<h1 class="doc-title">ARKUSZ BADANIA OPTOMETRYCZNEGO</h1>
+<div class="doc-subtitle">Refrakcja oraz ocena jakości widzenia &bull;
+  Standard PTOO (aktualizacja 2025)</div>
+
+<div class="header-grid">
+  <div class="header-field"><span>Nr karty / ID</span>{{ data.get('card_id','') or '&nbsp;' }}</div>
+  <div class="header-field"><span>Data badania</span>{{ data.get('exam_date','') or '&nbsp;' }}</div>
+  <div class="header-field"><span>Optometrysta</span>{{ data.get('optometrist','') or '&nbsp;' }}</div>
+</div>
+
+{# ======================================================================= #}
+{# SEKCJA 1 – zawsze widoczna                                               #}
+{# ======================================================================= #}
+<div class="sec">
+  <div class="sec-title">1. DANE OSOBOWE PACJENTA</div>
+  <table>
+    <tr>
+      <td class="lbl">Imię i nazwisko</td>
+      <td class="val">{{ data.get('patient_name','') }}</td>
+      <td class="lbl">PESEL / data urodzenia</td>
+      <td class="val">{{ data.get('pesel','') }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Telefon / e-mail</td>
+      <td class="val">{{ data.get('phone_email','') }}</td>
+      <td class="lbl">Zawód / praca wzrokowa</td>
+      <td class="val">{{ data.get('occupation','') }}</td>
+    </tr>
+  </table>
+</div>
+
+{# ======================================================================= #}
+{# SEKCJA 2 – WYWIAD                                                        #}
+{# ======================================================================= #}
+{% set s2_1 = has_any(data, 'main_complaint') %}
+{% set s2_2 = has_any(data, 'correction_type','last_exam_date','correction_comfort','usage_hours') %}
+{% set s2_3 = has_any(data, 'general_diseases','medications','allergies',
+                            'eye_diseases','family_history','screen_hours') %}
+{% if s2_1 or s2_2 or s2_3 %}
+<div class="sec">
+  <div class="sec-title">2. WYWIAD</div>
+
+  {% if s2_1 %}
+  <div class="subsec-title">2.1. Skarga główna</div>
+  <table><tr><td>{{ data.get('main_complaint','') }}</td></tr></table>
+  {% endif %}
+
+  {% if s2_2 %}
+  <div class="subsec-title">2.2. Dotychczasowa korekcja</div>
+  <table>
+    <tr>
+      <td class="lbl">Rodzaj korekcji</td>
+      <td class="val">{{ data.get('correction_type','') }}</td>
+      <td class="lbl">Data ostatniego badania</td>
+      <td class="val">{{ data.get('last_exam_date','') }}</td>
+    </tr>
+    <tr>
+      <td class="lbl">Komfort korekcji</td>
+      <td class="val">{{ data.get('correction_comfort','') }}</td>
+      <td class="lbl">Czas użytkowania</td>
+      <td class="val">{{ data.get('usage_hours','') }}{% if data.get('usage_hours') %} h/dobę{% endif %}</td>
+    </tr>
+  </table>
+  {% endif %}
+
+  {% if s2_3 %}
+  <div class="subsec-title">2.3. Wywiad ogólny i okulistyczny</div>
+  <table>
+    {% for key, label in [
+      ('general_diseases','Choroby ogólne'),
+      ('medications','Przyjmowane leki'),
+      ('allergies','Alergie'),
+      ('eye_diseases','Choroby / urazy oczu'),
+      ('family_history','Wywiad rodzinny (oczy)'),
+      ('screen_hours','Praca przy ekranie')
+    ] %}
+    {% if data.get(key) %}
+    <tr>
+      <td class="lbl">{{ label }}</td>
+      <td class="val">{{ data.get(key,'') }}{% if key == 'screen_hours' %} h/dobę{% endif %}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 3 – BADANIA WSTĘPNE                                              #}
+{# ======================================================================= #}
+{% set VA_KEYS = ['va_op_far_nc','va_op_far_c','va_op_near_nc','va_op_near_c',
+                  'va_ol_far_nc','va_ol_far_c','va_ol_near_nc','va_ol_near_c',
+                  'va_ou_far_nc','va_ou_far_c','va_ou_near_nc','va_ou_near_c'] %}
+{% set s3_1 = has_any(data, *VA_KEYS) %}
+{% set s3_2 = has_any(data, 'stereo_test','stereo_result',
+                            'binocular_far_method','binocular_far_result',
+                            'binocular_near_method','binocular_near_result') %}
+{% set s3_r = has_any(data, 'dominant_eye_far','dominant_eye_near',
+                            'eye_mov_versions','eye_mov_ductions',
+                            'visual_field','amsler_op','amsler_ol',
+                            'ppa_op','ppa_ol','ppk_break','ppk_recovery',
+                            'color_test','color_result','iop_op','iop_ol') %}
+{% if s3_1 or s3_2 or s3_r %}
+<div class="sec">
+  <div class="sec-title">3. BADANIA WSTĘPNE</div>
+
+  {% if s3_1 %}
+  <div class="subsec-title">3.1. Ostrość wzroku (VA)</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>Dal – bez kor.</th><th>Dal – z kor.</th>
+          <th>Bliż – bez kor.</th><th>Bliż – z kor.</th></tr>
+    </thead>
+    <tbody>
+      {% for eye, pref in [('OP (OD)','va_op'),('OL (OS)','va_ol'),('OPL (OU)','va_ou')] %}
+      {% if has_any(data, pref+'_far_nc', pref+'_far_c', pref+'_near_nc', pref+'_near_c') %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(pref+'_far_nc','') or '—' }}</td>
+        <td>{{ data.get(pref+'_far_c','')  or '—' }}</td>
+        <td>{{ data.get(pref+'_near_nc','') or '—' }}</td>
+        <td>{{ data.get(pref+'_near_c','')  or '—' }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if s3_2 %}
+  <div class="subsec-title">3.2. Widzenie obuoczne – wstępne</div>
+  <table>
+    {% if has_any(data, 'stereo_test','stereo_result') %}
+    <tr>
+      <td class="lbl">Stereoskopia</td>
+      <td class="val">{{ data.get('stereo_test','') }}
+        {% if data.get('stereo_result') %}&nbsp;– {{ data.get('stereo_result') }}&Prime; arc{% endif %}
+      </td>
+    </tr>
+    {% endif %}
+    {% if has_any(data, 'binocular_far_method','binocular_far_result') %}
+    <tr>
+      <td class="lbl">Forie / tropie – dal</td>
+      <td class="val">{{ data.get('binocular_far_method','') }} {{ data.get('binocular_far_result','') }}</td>
+    </tr>
+    {% endif %}
+    {% if has_any(data, 'binocular_near_method','binocular_near_result') %}
+    <tr>
+      <td class="lbl">Forie / tropie – bliż</td>
+      <td class="val">{{ data.get('binocular_near_method','') }} {{ data.get('binocular_near_result','') }}</td>
+    </tr>
+    {% endif %}
+  </table>
+  {% endif %}
+
+  {% if s3_r %}
+  <div class="subsec-title">3.3–3.10. Pozostałe badania wstępne</div>
+  <table>
+    {% if has_any(data,'dominant_eye_far','dominant_eye_near') %}
+    <tr><td class="lbl">Oko dominujące</td>
+        <td class="val">Dal: {{ data.get('dominant_eye_far','—') }} &nbsp; Bliż: {{ data.get('dominant_eye_near','—') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'eye_mov_versions','eye_mov_ductions') %}
+    <tr><td class="lbl">Ruchy oczu</td>
+        <td class="val">Wersje: {{ data.get('eye_mov_versions','') }} &nbsp; Dukcje: {{ data.get('eye_mov_ductions','') }}</td></tr>
+    {% endif %}
+    {% if data.get('visual_field') %}
+    <tr><td class="lbl">Pole widzenia</td><td class="val">{{ data.get('visual_field','') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'amsler_op','amsler_ol') %}
+    <tr><td class="lbl">Test Amslera</td>
+        <td class="val">OP: {{ data.get('amsler_op','—') }} &nbsp; OL: {{ data.get('amsler_ol','—') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'ppa_op','ppa_ol') %}
+    <tr><td class="lbl">PPA</td>
+        <td class="val">OP: {{ data.get('ppa_op','—') }} cm &nbsp; OL: {{ data.get('ppa_ol','—') }} cm</td></tr>
+    {% endif %}
+    {% if has_any(data,'ppk_break','ppk_recovery') %}
+    <tr><td class="lbl">PPK</td>
+        <td class="val">Rozb.: {{ data.get('ppk_break','—') }} cm &nbsp; Powr.: {{ data.get('ppk_recovery','—') }} cm</td></tr>
+    {% endif %}
+    {% if has_any(data,'color_test','color_result') %}
+    <tr><td class="lbl">Widzenie barw</td>
+        <td class="val">{{ data.get('color_test','') }} {{ data.get('color_result','') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'iop_op','iop_ol') %}
+    <tr><td class="lbl">Ciśnienie wewnątrzgałkowe</td>
+        <td class="val">OP: {{ data.get('iop_op','—') }} mmHg &nbsp; OL: {{ data.get('iop_ol','—') }} mmHg
+          {% if data.get('iop_method') %}({{ data.get('iop_method') }}){% endif %}</td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 4 – REFRAKCJA PRZEDMIOTOWA                                       #}
+{# ======================================================================= #}
+{% set s4_0 = has_any(data,'fof_op_sph','fof_op_cyl','fof_ol_sph','fof_ol_cyl') %}
+{% set s4_1 = has_any(data,'auto_op_sph','auto_op_cyl','auto_ol_sph','auto_ol_cyl',
+                           'auto_op_method','auto_ol_method') %}
+{% set s4_2 = has_any(data,'ker_op_k1','ker_op_k2','ker_ol_k1','ker_ol_k2') %}
+{% set s4_3 = has_any(data,'obj_va_op_far','obj_va_op_near',
+                          'obj_va_ol_far','obj_va_ol_near',
+                          'obj_va_ou_far','obj_va_ou_near') %}
+{% if s4_0 or s4_1 or s4_2 or s4_3 %}
+<div class="sec">
+  <div class="sec-title">4. REFRAKCJA PRZEDMIOTOWA (OBIEKTYWNA)</div>
+
+  {% macro refr_tbl(title, prefix, extra_cols=[]) %}
+  {% set ep_op = prefix + '_op' %}
+  {% set ep_ol = prefix + '_ol' %}
+  {% if has_any(data, ep_op+'_sph', ep_op+'_cyl', ep_ol+'_sph', ep_ol+'_cyl') %}
+  <div class="subsec-title">{{ title }}</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>Add (D)</th><th>Pryzmat / baza</th><th>PD (mm)</th>
+          {% for c in extra_cols %}<th>{{ c }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for eye, ep in [('OP', ep_op), ('OL', ep_ol)] %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(ep+'_sph','') or '—' }}</td>
+        <td>{{ data.get(ep+'_cyl','') or '—' }}</td>
+        <td>{{ data.get(ep+'_axis','') or '—' }}</td>
+        <td>{{ data.get(ep+'_add','') or '—' }}</td>
+        <td>{{ data.get(ep+'_prism','') or '—' }}</td>
+        <td>{{ data.get(ep+'_pd','') or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% endmacro %}
+
+  {% if s4_0 %}{{ refr_tbl('4.0. Frontofokometria – pomiar dotychczasowej korekcji', 'fof') }}{% endif %}
+
+  {% if s4_1 %}
+  <div class="subsec-title">4.1. Autorefraktometria / skiaskopia (retinoskopia)</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>Metoda</th><th>Cykloplegia</th><th>Uwagi</th></tr>
+    </thead>
+    <tbody>
+      {% for eye, ep in [('OP','auto_op'),('OL','auto_ol')] %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(ep+'_sph','') or '—' }}</td>
+        <td>{{ data.get(ep+'_cyl','') or '—' }}</td>
+        <td>{{ data.get(ep+'_axis','') or '—' }}</td>
+        <td>{{ data.get(ep+'_method','') or '—' }}</td>
+        <td>{{ data.get(ep+'_cyclo','') or '—' }}</td>
+        <td>{{ data.get(ep+'_notes','') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if s4_2 %}
+  <div class="subsec-title">4.2. Keratometria</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>K1 (D / mm @ °)</th><th>K2 (D / mm @ °)</th>
+          <th>ΔK (astygm. rog.)</th><th>Jakość mir. / uwagi</th></tr>
+    </thead>
+    <tbody>
+      {% for eye, ep in [('OP','ker_op'),('OL','ker_ol')] %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(ep+'_k1','') or '—' }}</td>
+        <td>{{ data.get(ep+'_k2','') or '—' }}</td>
+        <td>{{ data.get(ep+'_dk','') or '—' }}</td>
+        <td>{{ data.get(ep+'_notes','') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if s4_3 %}
+  <div class="subsec-title">4.3. Ostrość wzroku z korekcją przedmiotową (obiektywną)</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>Dal – z kor. obj.</th><th>Bliż – z kor. obj.</th><th>Uwagi</th></tr>
+    </thead>
+    <tbody>
+      {% for eye, pfx in [('OP (OD)','obj_va_op'),('OL (OS)','obj_va_ol'),('OPL (OU)','obj_va_ou')] %}
+      {% if has_any(data, pfx+'_far', pfx+'_near', pfx+'_notes') %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(pfx+'_far','') or '—' }}</td>
+        <td>{{ data.get(pfx+'_near','') or '—' }}</td>
+        <td>{{ data.get(pfx+'_notes','') }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 5 – REFRAKCJA PODMIOTOWA – DAL                                   #}
+{# ======================================================================= #}
+{% set s5_12 = has_any(data,'subj_op_sph','subj_op_cyl','subj_op_axis',
+                            'subj_ol_sph','subj_ol_cyl','subj_ol_axis',
+                            'subj_op_va','subj_ol_va') %}
+{% set s5_3  = has_any(data,'binocular_balance','mpmva_op','mpmva_ol') %}
+{% set s5_4  = has_any(data,'far_bino_method','far_bino_result',
+                            'phoria_far_h','phoria_far_v',
+                            'verg_bo_pos','verg_bi_pos') %}
+{% if s5_12 or s5_3 or s5_4 %}
+<div class="sec">
+  <div class="sec-title">5. REFRAKCJA PODMIOTOWA (SUBIEKTYWNA) – DAL</div>
+
+  {% if s5_12 %}
+  <div class="subsec-title">5.1–5.2. Monokularna refrakcja podmiotowa</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>VA</th><th>Cz-Z</th><th>Cyl skrzyż.</th><th>Mgła</th></tr>
+    </thead>
+    <tbody>
+      {% for eye, ep in [('OP','subj_op'),('OL','subj_ol')] %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(ep+'_sph','') or '—' }}</td>
+        <td>{{ data.get(ep+'_cyl','') or '—' }}</td>
+        <td>{{ data.get(ep+'_axis','') or '—' }}</td>
+        <td>{{ data.get(ep+'_va','') or '—' }}</td>
+        <td>{{ data.get(ep+'_rg','') or '—' }}</td>
+        <td>{{ data.get(ep+'_cyl_cross','') or '—' }}</td>
+        <td>{{ data.get(ep+'_fog','') or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if s5_3 %}
+  <div class="subsec-title">5.3. Refrakcja podmiotowa obuoczna</div>
+  <table>
+    {% if data.get('binocular_balance') %}
+    <tr><td class="lbl">Metoda równoważenia</td>
+        <td class="val">{{ data.get('binocular_balance','') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'mpmva_op','mpmva_ol') %}
+    <tr><td class="lbl">MPMVA</td>
+        <td class="val">OP: {{ data.get('mpmva_op','—') }} D &nbsp; OL: {{ data.get('mpmva_ol','—') }} D</td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+
+  {% if s5_4 %}
+  <div class="subsec-title">5.4. Widzenie obuoczne w dobranej korekcji do dali</div>
+  <table>
+    {% if has_any(data,'far_bino_method','far_bino_result') %}
+    <tr><td class="lbl">Tłumienie / forie / tropie</td>
+        <td class="val">{{ data.get('far_bino_method','') }} {{ data.get('far_bino_result','') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'phoria_far_h','phoria_far_v') %}
+    <tr><td class="lbl">Forie (Δ pryzm.)</td>
+        <td class="val">Horyz.: {{ data.get('phoria_far_h','—') }} &nbsp; Wert.: {{ data.get('phoria_far_v','—') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'verg_bo_pos','verg_bo_blur','verg_bo_break') %}
+    <tr><td class="lbl">Wergencje BO (poz./rozm./powr.)</td>
+        <td class="val">{{ data.get('verg_bo_pos','—') }} / {{ data.get('verg_bo_blur','—') }} / {{ data.get('verg_bo_break','—') }} Δ</td></tr>
+    {% endif %}
+    {% if has_any(data,'verg_bi_pos','verg_bi_blur','verg_bi_break') %}
+    <tr><td class="lbl">Wergencje BI (poz./rozm./powr.)</td>
+        <td class="val">{{ data.get('verg_bi_pos','—') }} / {{ data.get('verg_bi_blur','—') }} / {{ data.get('verg_bi_break','—') }} Δ</td></tr>
+    {% endif %}
+    {% if has_any(data,'verg_bu','verg_bd') %}
+    <tr><td class="lbl">Zakresy wertykalne BU / BD</td>
+        <td class="val">BU: {{ data.get('verg_bu','—') }} Δ &nbsp; BD: {{ data.get('verg_bd','—') }} Δ</td></tr>
+    {% endif %}
+    {% if data.get('far_correction_final') %}
+    <tr><td class="lbl">Uściślenie korekcji do dali</td>
+        <td class="val">{{ data.get('far_correction_final','') }}</td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 6 – WIDZENIE BLISKIE                                             #}
+{# ======================================================================= #}
+{% set s6_13 = has_any(data,'amp_acc_op','amp_acc_ol','add_preliminary',
+                            'add_working_dist','add_range_from','add_range_to') %}
+{% set s6_4  = has_any(data,'near_bino_method','near_bino_result',
+                            'phoria_near_h','phoria_near_v','aca_ratio',
+                            'near_verg_bo','near_verg_bi') %}
+{% set s6_57 = has_any(data,'acc_facility_mono','acc_facility_bino',
+                            'acc_response_op','acc_response_ol','final_add') %}
+{% if s6_13 or s6_4 or s6_57 %}
+<div class="sec">
+  <div class="sec-title">6. WIDZENIE BLISKIE (PRACA Z BLIŻY)</div>
+
+  {% if s6_13 %}
+  <div class="subsec-title">6.1–6.3. Akomodacja i dodatek wstępny</div>
+  <table>
+    {% if has_any(data,'amp_acc_op','amp_acc_ol') %}
+    <tr><td class="lbl">6.1. Amplituda akomodacji</td>
+        <td class="val">OP: {{ data.get('amp_acc_op','—') }} D &nbsp; OL: {{ data.get('amp_acc_ol','—') }} D
+          {% if data.get('amp_acc_method') %}&nbsp; ({{ data.get('amp_acc_method') }}){% endif %}</td></tr>
+    {% endif %}
+    {% if data.get('add_preliminary') %}
+    <tr><td class="lbl">6.2. Wstępny Add</td>
+        <td class="val">+{{ data.get('add_preliminary','') }} D
+          {% if data.get('add_working_dist') %}&nbsp; odl. robocza: {{ data.get('add_working_dist') }} cm{% endif %}</td></tr>
+    {% endif %}
+    {% if has_any(data,'add_range_from','add_range_to') %}
+    <tr><td class="lbl">6.3. Zakres ostrego widzenia</td>
+        <td class="val">{{ data.get('add_range_from','—') }} – {{ data.get('add_range_to','—') }} cm</td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+
+  {% if s6_4 %}
+  <div class="subsec-title">6.4. Widzenie obuoczne z bliska</div>
+  <table>
+    {% if has_any(data,'near_bino_method','near_bino_result') %}
+    <tr><td class="lbl">Tłumienie / forie / tropie</td>
+        <td class="val">{{ data.get('near_bino_method','') }} {{ data.get('near_bino_result','') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'phoria_near_h','phoria_near_v') %}
+    <tr><td class="lbl">Forie z bliska (Δ)</td>
+        <td class="val">Horyz.: {{ data.get('phoria_near_h','—') }} &nbsp; Wert.: {{ data.get('phoria_near_v','—') }}</td></tr>
+    {% endif %}
+    {% if data.get('aca_ratio') %}
+    <tr><td class="lbl">AC/A</td>
+        <td class="val">{{ data.get('aca_ratio','') }} Δ/D</td></tr>
+    {% endif %}
+    {% if has_any(data,'near_verg_bo','near_verg_bi') %}
+    <tr><td class="lbl">6.4.2. Zakresy wergencji BO / BI</td>
+        <td class="val">BO: {{ data.get('near_verg_bo','—') }} &nbsp; BI: {{ data.get('near_verg_bi','—') }} Δ</td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+
+  {% if s6_57 %}
+  <div class="subsec-title">6.5–6.7. Sprawność i odpowiedź akomodacji</div>
+  <table>
+    {% if has_any(data,'acc_facility_mono','acc_facility_bino') %}
+    <tr><td class="lbl">6.5. Sprawność akomodacji</td>
+        <td class="val">OP/OL mono: {{ data.get('acc_facility_mono','—') }} cpm &nbsp;
+          OPL bino: {{ data.get('acc_facility_bino','—') }} cpm</td></tr>
+    {% endif %}
+    {% if has_any(data,'acc_response_op','acc_response_ol') %}
+    <tr><td class="lbl">6.6. Odpowiedź akomodacji
+        {% if data.get('acc_response_method') %}({{ data.get('acc_response_method') }}){% endif %}</td>
+        <td class="val">OP: {{ data.get('acc_response_op','—') }} D &nbsp; OL: {{ data.get('acc_response_ol','—') }} D</td></tr>
+    {% endif %}
+    {% if data.get('final_add') %}
+    <tr><td class="lbl">6.7. Ostateczny Add</td>
+        <td class="val"><strong>+{{ data.get('final_add','') }} D</strong></td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 7 – LAMPA SZCZELINOWA                                            #}
+{# ======================================================================= #}
+{% set SNAMES = ['film_łzowy','powieki','spojówka_gałk','spojówka_tarck',
+                 'rogówka','rąbek','twardówka','tęczówka','komora','soczewka'] %}
+{% set FNAMES = ['tarczka','arkada_g','arkada_d','plamka','obwód','ciałosz'] %}
+{% set s7_1 = has_prefix(data, 'slit_') %}
+{% set s7_2 = has_prefix(data, 'fundus_') %}
+{% if s7_1 or s7_2 %}
+<div class="sec">
+  <div class="sec-title">7. BADANIE W LAMPIE SZCZELINOWEJ</div>
+
+  {% if s7_1 %}
+  <div class="subsec-title">7.1. Ocena przedniego odcinka oka (skala Efron 0–4)</div>
+  <table>
+    <thead>
+      <tr><th>Element</th><th>OP – stopień</th><th>OL – stopień</th>
+          <th>OP – opis</th><th>OL – opis</th></tr>
+    </thead>
+    <tbody>
+      {% set SLBL = {
+        'film_łzowy':'Film łzowy (TBUT)', 'powieki':'Powieki / brzegi',
+        'spojówka_gałk':'Spojówka gałk.', 'spojówka_tarck':'Spojówka tarck.',
+        'rogówka':'Rogówka', 'rąbek':'Rąbek rogówki',
+        'twardówka':'Twardówka', 'tęczówka':'Tęczówka',
+        'komora':'Komora przednia', 'soczewka':'Soczewka'
+      } %}
+      {% for key in SNAMES %}
+      {% if has_any(data,'slit_op_grade_'+key,'slit_ol_grade_'+key,
+                        'slit_op_desc_'+key,'slit_ol_desc_'+key) %}
+      <tr>
+        <td>{{ SLBL[key] }}</td>
+        <td>{{ data.get('slit_op_grade_'+key,'') or '—' }}</td>
+        <td>{{ data.get('slit_ol_grade_'+key,'') or '—' }}</td>
+        <td>{{ data.get('slit_op_desc_'+key,'') }}</td>
+        <td>{{ data.get('slit_ol_desc_'+key,'') }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if s7_2 %}
+  <div class="subsec-title">7.2. Tylny odcinek oka (oftalmoskopia / fundus)</div>
+  <table>
+    <thead><tr><th>Element</th><th>OP</th><th>OL</th></tr></thead>
+    <tbody>
+      {% set FLBL = {
+        'tarczka':'Tarcza n. wzrokowego (C/D)', 'arkada_g':'Arkada górna',
+        'arkada_d':'Arkada dolna', 'plamka':'Pole plamkowe',
+        'obwód':'Obwód siatkówki', 'ciałosz':'Ciało szkliste'
+      } %}
+      {% for key in FNAMES %}
+      {% if has_any(data,'fundus_op_'+key,'fundus_ol_'+key) %}
+      <tr>
+        <td>{{ FLBL[key] }}</td>
+        <td>{{ data.get('fundus_op_'+key,'') or '—' }}</td>
+        <td>{{ data.get('fundus_ol_'+key,'') or '—' }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if data.get('fundus_notes') %}
+  <p style="margin-top:4px;font-size:9pt"><em>Uwagi: {{ data.get('fundus_notes') }}</em></p>
+  {% endif %}
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 8 – OCENA JAKOŚCI WIDZENIA                                       #}
+{# ======================================================================= #}
+{% set s8_1 = has_any(data,'cs_op','cs_ol','glare_op','glare_ol',
+                           'hoa_op','hoa_ol','pupil_op','pupil_ol') %}
+{% set s8_2 = has_any(data,'vas_far','vas_near','vas_day','vas_eve',
+                           'vas_night','vas_3d','vas_aste','vas_total') %}
+{% if s8_1 or s8_2 %}
+<div class="sec">
+  <div class="sec-title">8. OCENA JAKOŚCI WIDZENIA</div>
+
+  {% if s8_1 %}
+  <div class="subsec-title">8.1. Wrażliwość na kontrast i jakość obrazu</div>
+  <table>
+    <thead><tr><th>Parametr</th><th>OP</th><th>OL</th></tr></thead>
+    <tbody>
+      {% for label, ok, ol in [
+        ('Wrażliwość na kontrast','cs_op','cs_ol'),
+        ('Olśnienie / widzenie zmierzchowe','glare_op','glare_ol'),
+        ('Aberracje HOA / RMS','hoa_op','hoa_ol'),
+        ('Średnica źrenicy','pupil_op','pupil_ol')
+      ] %}
+      {% if has_any(data, ok, ol) %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>{{ data.get(ok,'') or '—' }}</td>
+        <td>{{ data.get(ol,'') or '—' }}</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if s8_2 %}
+  <div class="subsec-title">8.2. Subiektywna ocena widzenia (skala 0–10)</div>
+  <table>
+    <thead><tr><th>Aspekt</th><th>Ocena pacjenta</th></tr></thead>
+    <tbody>
+      {% for key, label in [
+        ('vas_far','Ostrość widzenia do dali'),
+        ('vas_near','Ostrość widzenia do bliży'),
+        ('vas_day','Komfort widzenia w ciągu dnia'),
+        ('vas_eve','Komfort widzenia po pracy / wieczorem'),
+        ('vas_night','Widzenie w warunkach zmierzchowych / nocnych'),
+        ('vas_3d','Wrażenie głębi (3D)'),
+        ('vas_aste','Brak objawów astenopijnych (zmęczenia)'),
+        ('vas_total','Ogólna satysfakcja z widzenia')
+      ] %}
+      {% if data.get(key) %}
+      <tr>
+        <td>{{ label }}</td>
+        <td>{{ data.get(key,'') }} / 10</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 9 – DIAGNOZA I ZALECENIA                                         #}
+{# ======================================================================= #}
+{% set s9_1 = has_any(data,'diagnosis') %}
+{% set s9_2 = has_any(data,'final_op_sph','final_op_cyl','final_ol_sph','final_ol_cyl',
+                          'final_op_add','final_ol_add','lens_type','lens_coatings') %}
+{% set s9_3 = has_any(data,'referral','vision_therapy','hygiene_advice',
+                          'followup_date','followup_text','additional_notes') %}
+{% if s9_1 or s9_2 or s9_3 %}
+<div class="sec">
+  <div class="sec-title">9. DIAGNOZA OPTOMETRYCZNA I ZALECENIA</div>
+
+  {% if s9_1 %}
+  <div class="subsec-title">9.1. Rozpoznanie optometryczne</div>
+  <table><tr><td>{{ data.get('diagnosis','') }}</td></tr></table>
+  {% endif %}
+
+  {% if s9_2 %}
+  <div class="subsec-title">9.2. Końcowa zalecana korekcja okularowa</div>
+  <table>
+    <thead>
+      <tr><th>Oko</th><th>Sph (D)</th><th>Cyl (D)</th><th>Axis (°)</th>
+          <th>Add (D)</th><th>Pryzmat / baza</th><th>PD (mm)</th></tr>
+    </thead>
+    <tbody>
+      {% for eye, ep in [('OP','final_op'),('OL','final_ol')] %}
+      <tr>
+        <td><strong>{{ eye }}</strong></td>
+        <td>{{ data.get(ep+'_sph','') or '—' }}</td>
+        <td>{{ data.get(ep+'_cyl','') or '—' }}</td>
+        <td>{{ data.get(ep+'_axis','') or '—' }}</td>
+        <td>{{ data.get(ep+'_add','') or '—' }}</td>
+        <td>{{ data.get(ep+'_prism','') or '—' }}</td>
+        <td>{{ data.get(ep+'_pd','') or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if has_any(data,'lens_type','lens_coatings') %}
+  <table style="margin-top:4px">
+    {% if data.get('lens_type') %}
+    <tr><td class="lbl">Typ soczewek</td>
+        <td class="val">{{ data.get('lens_type','') }}</td></tr>
+    {% endif %}
+    {% if data.get('lens_coatings') %}
+    <tr><td class="lbl">Powłoki / filtry</td>
+        <td class="val">{{ data.get('lens_coatings','') }}</td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+  {% endif %}
+
+  {% if s9_3 %}
+  <div class="subsec-title">9.3. Zalecenia i dalsze postępowanie</div>
+  <table>
+    {% if data.get('referral') %}
+    <tr><td class="lbl">Skierowanie</td>
+        <td class="val">{{ data.get('referral','') }}
+          {% if data.get('referral_reason') %}&nbsp;– {{ data.get('referral_reason') }}{% endif %}</td></tr>
+    {% endif %}
+    {% if data.get('vision_therapy') %}
+    <tr><td class="lbl">Ćwiczenia wzrokowe / terapia</td>
+        <td class="val">{{ data.get('vision_therapy','') }}</td></tr>
+    {% endif %}
+    {% if data.get('hygiene_advice') %}
+    <tr><td class="lbl">Higiena widzenia / ergonomia</td>
+        <td class="val">{{ data.get('hygiene_advice','') }}</td></tr>
+    {% endif %}
+    {% if has_any(data,'followup_date','followup_text') %}
+    <tr><td class="lbl">Termin kontroli</td>
+        <td class="val">{{ data.get('followup_date','') }} {{ data.get('followup_text','') }}</td></tr>
+    {% endif %}
+    {% if data.get('additional_notes') %}
+    <tr><td class="lbl">Uwagi dodatkowe</td>
+        <td class="val">{{ data.get('additional_notes','') }}</td></tr>
+    {% endif %}
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ======================================================================= #}
+{# SEKCJA 10 – PODPISY – zawsze widoczna                                   #}
+{# ======================================================================= #}
+<div class="sec">
+  <div class="sec-title">10. Świadoma zgoda i podpisy</div>
+  <div class="sig-area">
+    <div class="sig-box">
+      <p>Pacjent oświadcza, że został poinformowany o wynikach badania i zaleceniach.</p>
+      <p style="margin-top:30px">............................................................</p>
+      <p style="font-size:9pt">data i podpis pacjenta</p>
+    </div>
+    <div class="sig-box">
+      <p>Optometrysta wykonujący badanie:<br>
+         <strong>{{ data.get('optometrist','') }}</strong></p>
+      <p style="margin-top:20px">............................................................</p>
+      <p style="font-size:9pt">imię, nazwisko, nr NWO, podpis i pieczątka</p>
+    </div>
+  </div>
+  <p class="footer-note">
+    Podstawa: Standard Badania Optometrycznego PTOO (aktualizacja 2025).
+    Zakres badania dostosowany do indywidualnych potrzeb pacjenta.
+  </p>
+</div>
+
+</body>
+</html>

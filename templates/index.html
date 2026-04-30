@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Lista Badań{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Kartoteka pacjentów</h1>
+  <form class="search-form" method="get" action="/">
+    <input type="text" name="q" value="{{ q }}" placeholder="Szukaj po nazwisku...">
+    <button type="submit">Szukaj</button>
+    {% if q %}<a href="/" class="btn-clear">✕ Wyczyść</a>{% endif %}
+  </form>
+</div>
+
+{% if exams %}
+<table class="list-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Pacjent</th>
+      <th>Data badania</th>
+      <th>Optometrysta</th>
+      <th>Ostatnia zmiana</th>
+      <th>Akcje</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in exams %}
+    <tr>
+      <td>{{ e.id }}</td>
+      <td><strong>{{ e.patient_name or '(brak)' }}</strong></td>
+      <td>{{ e.exam_date or '—' }}</td>
+      <td>{{ e.optometrist or '—' }}</td>
+      <td>{{ e.updated_at }}</td>
+      <td class="actions">
+        <a href="/exam/{{ e.id }}" class="btn-sm btn-edit">Edytuj</a>
+        <a href="/report/{{ e.id }}" class="btn-sm btn-report" target="_blank">Raport / Druk</a>
+        <form method="post" action="/delete/{{ e.id }}"
+              onsubmit="return confirm('Usunąć badanie pacjenta {{ e.patient_name }}?')"
+              style="display:inline">
+          <button type="submit" class="btn-sm btn-delete">Usuń</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">
+  {% if q %}
+    <p>Brak wyników dla: <strong>{{ q }}</strong></p>
+  {% else %}
+    <p>Brak badań w bazie. <a href="/new">Utwórz pierwsze badanie →</a></p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
